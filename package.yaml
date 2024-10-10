@@ -21,17 +21,23 @@ description:         Please see the README on GitHub at <https://github.com/gith
 
 dependencies:
 - base >= 4.7 && < 5
+- pretty
+- array
+- haskeline >= 0.8.0.0
+- mtl
+- exceptions
+- QuickCheck
+- containers
 
-ghc-options:
-- -Wall
-- -Wcompat
-- -Widentities
-- -Wincomplete-record-updates
-- -Wincomplete-uni-patterns
-- -Wmissing-export-lists
-- -Wmissing-home-modules
-- -Wpartial-fields
-- -Wredundant-constraints
+default-extensions:
+- TupleSections
+- MultiWayIf
+- LambdaCase
+- DataKinds
+- PolyKinds
+- FlexibleInstances
+- FlexibleContexts
+
 
 library:
   source-dirs: src
@@ -46,14 +52,6 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - graphs
+    build-tools:
+    - happy
 
-tests:
-  graphs-test:
-    main:                Spec.hs
-    source-dirs:         test
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - graphs
