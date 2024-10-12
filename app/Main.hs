@@ -42,7 +42,7 @@ data State = S
   ,       -- True, si estamos en modo interactivo.
     lfile :: String
   ,     -- Ultimo archivo cargado (para hacer "reload")
-    ve    :: NameEnv Value Type  -- Entorno con variables globales y su valor  [(Name, (Value, Type))]
+    ve    :: VarEnv [Node]  -- Entorno con variables globales y su valor  [(Name, (Value, Type))]
   }
 
 --  read-eval-print loop
@@ -193,13 +193,9 @@ parseIO f p x = lift $ case p x of
     return Nothing
   Ok r -> return (Just r)
 
-handleStmt :: State -> Stmt LamTerm -> InputT IO State
-handleStmt state stmt = lift $ do
-  case stmt of
-    Def x e -> do putStrLn (show e)
-                  return state
-    Eval e  -> do putStrLn (show e)
-                  return state
+handleStmt :: State -> Stmt -> InputT IO State
+handleStmt state stmt = lift $ do putStrLn $ show stmt
+                                  return state
 
 prelude :: String
 prelude = "Ejemplos/Prelude.lam"

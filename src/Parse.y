@@ -9,7 +9,7 @@ import Data.Char
 %monad { P } { thenP } { returnP }
 %name parseStmt Def
 %name parseStmts Defs
-%name term Exp
+%name term Def
 
 %tokentype { Token }
 %lexer {lexer} {TEOF}
@@ -17,73 +17,43 @@ import Data.Char
 %token
     '='     { TEquals }
     ':'     { TColon }
-    '\\'    { TAbs }
     '.'     { TDot }
+    '"'     { TQuote }
+    '{'     { TKOpen }
+    '}'     { TKClose }
+    ';'     { TSemi }
     '('     { TOpen }
     ')'     { TClose }
-    '->'    { TArrow }
     ','     { TComa }
+    '->'    { TArrow }
     VAR     { TVar $$ }
-    TYPEE   { TTypeE }
-    DEF     { TDef }
-    LET     { TLet }
-    IN      { TIn }
-    UNIT    { TUnitT }
-    UNITV   { TUnit }
-    FST     { TFst }
-    SND     { TSnd }
-    ZERO    { TZero }
-    SUC     { TSuc }
-    NAT     { TNat }
-    REC     { TRec }
+    NEWGR   { TGr }
     INT     { TInt $$ }
+    DEF     { TDef }
+    NAME    { TName $$ }
+-- x = {a,b,c,d}
+-- y = {(a,b),(b,c),(c,d)}
+-- Graph = (x,y)
+-- Graph [Node] [Edge]
 
-
-
-
-%right VAR
-%left '=' 
-%right '->'
-%right FST SND
-%right SUC
-%right REC 
-%right '\\' '.' LET 
+%right VAR INT NAME
+%left '='  
+%right '\\' '.' NEWGR  '->'
 %%
 
-Def     :  Defexp                      { $1 }
-        |  Exp	                       { Eval $1 }
-Defexp  : DEF VAR '=' Exp              { Def $2 $4 } 
+Def     : NEWGR NAME '=' '{' Defgraph '}'      { NewGraph $2 $5 }
 
-Exp     :: { LamTerm }
-        : '\\' VAR ':' Type '.' Exp    { LAbs $2 $4 $6 }
-        | LET VAR '=' Exp IN Exp       { LLet $2 $4 $6 }
-        | NAbs                         { $1 }
-        | FST Exp                      { LFst $2 }
-        | SND Exp                      { LSnd $2 }
-        | '(' Exp ',' Exp ')'          { LPair $2 $4 }
-        | SUC Exp                      { LSuc $2 }
-        | REC Atom Atom Exp            { LRec $2 $3 $4 }
+Defgraph :  NAME '->' Edges ';' Defgraph     {( $1, $3 )  : $5 }
+         |                                   { [] }
 
-NAbs    :: { LamTerm }
-        : NAbs Atom                    { LApp $1 $2 }
-        | Atom                         { $1 }
 
-Atom    :: { LamTerm }
-        : VAR                          { LVar $1 }  
-        | '(' Exp ')'                  { $2 }
-        | UNITV                        { LUnit }
-        | ZERO                         { LZero }
-        | INT                          { LInt $1 }
+Edges : NAME Edges  { $1 : $2 }
+      |             { [] }
+ 
 
-Type    : TYPEE                        { EmptyT }
-        | Type '->' Type               { FunT $1 $3 }
-        | '(' Type ')'                 { $2 }
-        | UNIT                         { UnitT}
-        | '(' Type ',' Type ')'        { PairT $2 $4 }
-        | NAT                          { NatT }
 
-Defs    : Defexp Defs                  { $1 : $2 }
-        |                              { [] }
+Defs    : Def Defs                  { $1 : $2 }
+        |                             { [] }
      
 {
 
@@ -115,26 +85,20 @@ happyError :: P a
 happyError = \ s i -> Failed $ "Línea "++(show (i::LineNumber))++": Error de parseo\n"++(s)
 
 data Token = TVar String
-               | TTypeE
                | TDef
-               | TAbs
-               | TLet
-               | TIn
                | TDot
                | TOpen
                | TClose 
+               | TGr
+               | TName String
+               | TKClose
+               | TKOpen
                | TColon
-               | TArrow
                | TComa
+               | TQuote
+               | TSemi
+               | TArrow
                | TEquals
-               | TUnit
-               | TUnitT
-               | TFst
-               | TSnd
-               | TZero 
-               | TSuc 
-               | TRec 
-               | TNat
                | TEOF
                | TInt Int
                deriving Show
@@ -150,30 +114,24 @@ lexer cont s = case s of
                     ('-':('-':cs)) -> lexer cont $ dropWhile ((/=) '\n') cs
                     ('{':('-':cs)) -> consumirBK 0 0 cont cs	
                     ('-':('}':cs)) -> \ line -> Failed $ "Línea "++(show line)++": Comentario no abierto"
-                    ('-':('>':cs)) -> cont TArrow cs
-                    ('\\':cs)-> cont TAbs cs
                     ('.':cs) -> cont TDot cs
                     (',':cs) -> cont TComa cs  
                     ('(':cs) -> cont TOpen cs
-                    ('-':('>':cs)) -> cont TArrow cs
                     (')':cs) -> cont TClose cs
+                    ('"':cs) -> cont TQuote cs
                     (':':cs) -> cont TColon cs
                     ('=':cs) -> cont TEquals cs
-                    ('0':cs) -> cont TZero cs
+                    ('-':('>':cs)) -> cont TArrow cs
+                    (';':cs) -> cont TSemi cs
+                    ('{':cs) -> cont TKOpen cs
+                    ('}':cs) -> cont TKClose cs
                     unknown -> \line -> Failed $ 
                      "Línea "++(show line)++": No se puede reconocer "++(show $ take 10 unknown)++ "..."
                     where lexVar cs = case span isAlpha cs of
-                              ("E",rest)    -> cont TTypeE rest
+                              ("newgr",rest) -> cont TGr rest
                               ("def",rest)  -> cont TDef rest
-                              ("let",rest)  -> cont TLet rest
-                              ("in",rest)   -> cont TIn rest
-                              ("unit",rest) -> cont TUnit rest
-                              ("Unit",rest) -> cont TUnitT rest
-                              ("fst",rest) -> cont TFst rest
-                              ("suc",rest) -> cont TSuc rest
-                              ("R",rest)   -> cont TRec rest
-                              ("Nat",rest) -> cont TNat rest
-                              (var,rest)    -> cont (TVar var) rest
+                              (var,'=':rest) -> cont (TVar var) rest
+                              (name, rest) -> cont (TName name) rest
                           consumirBK anidado cl cont s = case s of
                               ('-':('-':cs)) -> consumirBK anidado cl cont $ dropWhile ((/=) '\n') cs
                               ('{':('-':cs)) -> consumirBK (anidado+1) cl cont cs	
