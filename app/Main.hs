@@ -18,6 +18,8 @@ import           Text.PrettyPrint.HughesPJ      ( render
 
 import           Parse
 import           Common
+import           Elab                         ( elaborate, eval )
+import           PrettyPrinter
 ---------------------
 --- Interpreter
 ---------------------
@@ -42,7 +44,7 @@ data State = S
   ,       -- True, si estamos en modo interactivo.
     lfile :: String
   ,     -- Ultimo archivo cargado (para hacer "reload")
-    ve    :: VarEnv [Node]  -- Entorno con variables globales y su valor  [(Name, (Value, Type))]
+    ve    :: VarEnv Value  -- Entorno con variables globales y su valor  [(Name, (Value, Type))]
   }
 
 --  read-eval-print loop
@@ -109,9 +111,9 @@ handleCommand state@(S inter lfile ve) cmd = case cmd of
   Quit   -> lift $ when (not inter) (putStrLn "!@#$^&*") >> return Nothing
   Noop   -> return (Just state)
   Help   -> lift $ putStr (helpTxt commands) >> return (Just state)
-  Browse -> lift $ do
-    putStr (unlines [ s | Global s <- reverse (nub (map fst ve)) ])
-    return (Just state)
+--  Browse -> lift $ do
+--    putStr (unlines [ s | Global s <- reverse (nub (map fst ve)) ])
+--    return (Just state)
   Compile c -> do
     state' <- case c of
       CompileInteractive s -> compilePhrase state s
@@ -194,8 +196,19 @@ parseIO f p x = lift $ case p x of
   Ok r -> return (Just r)
 
 handleStmt :: State -> Stmt -> InputT IO State
-handleStmt state stmt = lift $ do putStrLn $ show stmt
-                                  return state
+handleStmt state stmt = lift $ do 
+  case stmt of
+    Def n ns -> do
+      let g = elaborate n ns
+          vg = eval (ve state) g
+      return (state { ve = (n, vg) : ve state })
+    Eval ns -> do
+      let g = elaborate "Graph" ns
+          vg = eval (ve state) g
+      putStrLn (show vg)
+      loadGraph vg
+      return state
+  
 
 prelude :: String
 prelude = "Ejemplos/Prelude.lam"

@@ -25,9 +25,15 @@ dependencies:
 - array
 - haskeline >= 0.8.0.0
 - mtl
+- fgl
+- text
+- process
 - exceptions
 - QuickCheck
 - containers
+- graphviz
+- gloss
+- gloss-juicy
 
 default-extensions:
 - TupleSections

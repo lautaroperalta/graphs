@@ -29,6 +29,7 @@ library
       Elab
       Lib
       Parse
+      PrettyPrinter
   other-modules:
       Paths_graphs
   autogen-modules:
@@ -49,9 +50,15 @@ library
     , base >=4.7 && <5
     , containers
     , exceptions
+    , fgl
+    , gloss
+    , gloss-juicy
+    , graphviz
     , haskeline >=0.8.0.0
     , mtl
     , pretty
+    , process
+    , text
   default-language: Haskell2010
 
 executable graphs-exe
@@ -79,8 +86,14 @@ executable graphs-exe
     , base >=4.7 && <5
     , containers
     , exceptions
+    , fgl
+    , gloss
+    , gloss-juicy
     , graphs
+    , graphviz
     , haskeline >=0.8.0.0
     , mtl
     , pretty
+    , process
+    , text
   default-language: Haskell2010

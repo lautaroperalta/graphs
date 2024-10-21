@@ -26,11 +26,12 @@ import Data.Char
     ')'     { TClose }
     ','     { TComa }
     '->'    { TArrow }
+    '--'    { TLine }
     VAR     { TVar $$ }
-    NEWGR   { TGr }
     INT     { TInt $$ }
     DEF     { TDef }
     NAME    { TName $$ }
+    '++'   { TUnion }
 -- x = {a,b,c,d}
 -- y = {(a,b),(b,c),(c,d)}
 -- Graph = (x,y)
@@ -38,14 +39,25 @@ import Data.Char
 
 %right VAR INT NAME
 %left '='  
-%right '\\' '.' NEWGR  '->'
-%%
+%right '\\' '.' DEF  '->' '--' '++' '{' '}' ';' ',' ':' '"' '(' ')' TEOF
+%% 
 
-Def     : NEWGR NAME '=' '{' Defgraph '}'      { NewGraph $2 $5 }
+Def     : DEF NAME '=' Exp      { Def $2 $4 }
+        | Exp                     { Eval $1 }  
 
-Defgraph :  NAME '->' Edges ';' Defgraph     {( $1, $3 )  : $5 }
-         |                                   { [] }
+Defgraph :  NAME '->' Edges ';' DirectedGr    { SGraph (DirectedGraph (( $1, $3 )  : $5)) }
+         |  NAME '--' Edges ';' UndirectedGr  { SGraph (UndirectedGraph (( $1, $3 )  : $5)) }
+         |                                    { SGraph (EmptyGraph) } 
 
+Exp     : NAME                                { SVar $1}
+        | '{' Defgraph '}'                    { $2 }
+        | Exp '++' Exp                        { SUnion $1 $3 }
+
+DirectedGr : NAME '->' Edges ';' DirectedGr   {( $1, $3 )  : $5 }
+           |                                  { [] }
+
+UndirectedGr : NAME '--' Edges ';' UndirectedGr   {( $1, $3 )  : $5 }
+             |                                    { [] }
 
 Edges : NAME Edges  { $1 : $2 }
       |             { [] }
@@ -97,7 +109,9 @@ data Token = TVar String
                | TComa
                | TQuote
                | TSemi
+               | TUnion
                | TArrow
+               | TLine
                | TEquals
                | TEOF
                | TInt Int
@@ -111,9 +125,9 @@ lexer cont s = case s of
                           | isSpace c -> lexer cont cs
                           | isAlpha c -> lexVar (c:cs)
                           | isDigit c -> lexInt (c:cs)
-                    ('-':('-':cs)) -> lexer cont $ dropWhile ((/=) '\n') cs
-                    ('{':('-':cs)) -> consumirBK 0 0 cont cs	
-                    ('-':('}':cs)) -> \ line -> Failed $ "Línea "++(show line)++": Comentario no abierto"
+                    ('/':('/':cs)) -> lexer cont $ dropWhile ((/=) '\n') cs
+                    ('{':('/':cs)) -> consumirBK 0 0 cont cs	
+                    ('/':('}':cs)) -> \ line -> Failed $ "Línea "++(show line)++": Comentario no abierto"
                     ('.':cs) -> cont TDot cs
                     (',':cs) -> cont TComa cs  
                     ('(':cs) -> cont TOpen cs
@@ -122,20 +136,21 @@ lexer cont s = case s of
                     (':':cs) -> cont TColon cs
                     ('=':cs) -> cont TEquals cs
                     ('-':('>':cs)) -> cont TArrow cs
+                    ('-':('-':cs)) -> cont TLine cs
+                    ('+':('+':cs)) -> cont TUnion cs
                     (';':cs) -> cont TSemi cs
                     ('{':cs) -> cont TKOpen cs
                     ('}':cs) -> cont TKClose cs
                     unknown -> \line -> Failed $ 
                      "Línea "++(show line)++": No se puede reconocer "++(show $ take 10 unknown)++ "..."
                     where lexVar cs = case span isAlpha cs of
-                              ("newgr",rest) -> cont TGr rest
                               ("def",rest)  -> cont TDef rest
                               (var,'=':rest) -> cont (TVar var) rest
                               (name, rest) -> cont (TName name) rest
                           consumirBK anidado cl cont s = case s of
-                              ('-':('-':cs)) -> consumirBK anidado cl cont $ dropWhile ((/=) '\n') cs
-                              ('{':('-':cs)) -> consumirBK (anidado+1) cl cont cs	
-                              ('-':('}':cs)) -> case anidado of
+                              ('/':('/':cs)) -> consumirBK anidado cl cont $ dropWhile ((/=) '\n') cs
+                              ('{':('/':cs)) -> consumirBK (anidado+1) cl cont cs	
+                              ('/':('}':cs)) -> case anidado of
                                                   0 -> \line -> lexer cont cs (line+cl)
                                                   _ -> consumirBK (anidado-1) cl cont cs
                               ('\n':cs) -> consumirBK anidado (cl+1) cont cs
