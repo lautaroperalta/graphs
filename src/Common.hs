@@ -1,7 +1,6 @@
 module Common where
-  import Data.Graph.Inductive.Graph
-  import Data.Graph.Inductive.PatriciaTree
   -- Comandos interactivos o de archivos
+  import qualified Data.Set as Set
   data Stmt = Def String STerm
             | Eval STerm
     deriving (Show)
@@ -9,14 +8,16 @@ module Common where
   data STerm = SVar String
              | SGraph SGraph
              | SUnion STerm STerm
+             | SIntersect STerm STerm
     deriving (Show)
 
   data Term = V Var
-            | Graph (Gr String String) Propietis
+            | Graph Graph Propietis
             | Union Term Term 
+            | Intersect Term Term
     deriving (Show)
 
-  data Value = VGraph (Gr String String) Propietis
+  data Value = VGraph Graph Propietis
     deriving (Show)
 
   data Propietis = P {
@@ -44,15 +45,14 @@ module Common where
   type VarEnv v = [(String, v)]
 
 
-  --data Graph = Graph { 
-  --              nodes :: [Node], 
-  --              edges :: [Edge],
-  --              name :: Name} 
-  --              deriving (Show)
+  data Graph = G { 
+                nodes :: Set.Set Node, 
+                edges :: Set.Set Edge
+              }
+                deriving (Show)
 
-
-  type Edge = (Int, Int)
-  type Node = (Int, Name)
+  type Edge = (Node, Node)
+  type Node = String
   type Name = String
 
 

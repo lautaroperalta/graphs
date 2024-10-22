@@ -31,7 +31,8 @@ import Data.Char
     INT     { TInt $$ }
     DEF     { TDef }
     NAME    { TName $$ }
-    '++'   { TUnion }
+    '\\/'    { TUnion }
+    '/\\'   { TIntersect }
 -- x = {a,b,c,d}
 -- y = {(a,b),(b,c),(c,d)}
 -- Graph = (x,y)
@@ -51,7 +52,9 @@ Defgraph :  NAME '->' Edges ';' DirectedGr    { SGraph (DirectedGraph (( $1, $3 
 
 Exp     : NAME                                { SVar $1}
         | '{' Defgraph '}'                    { $2 }
-        | Exp '++' Exp                        { SUnion $1 $3 }
+        | Exp '\\/' Exp                        { SUnion $1 $3 }
+        | Exp '/\\' Exp                       { SIntersect $1 $3 }
+        | '(' Exp ')'                         { $2 }
 
 DirectedGr : NAME '->' Edges ';' DirectedGr   {( $1, $3 )  : $5 }
            |                                  { [] }
@@ -110,6 +113,7 @@ data Token = TVar String
                | TQuote
                | TSemi
                | TUnion
+               | TIntersect
                | TArrow
                | TLine
                | TEquals
@@ -137,7 +141,8 @@ lexer cont s = case s of
                     ('=':cs) -> cont TEquals cs
                     ('-':('>':cs)) -> cont TArrow cs
                     ('-':('-':cs)) -> cont TLine cs
-                    ('+':('+':cs)) -> cont TUnion cs
+                    ('\\':('/':cs)) -> cont TUnion cs
+                    ('/':('\\':cs)) -> cont TIntersect cs
                     (';':cs) -> cont TSemi cs
                     ('{':cs) -> cont TKOpen cs
                     ('}':cs) -> cont TKClose cs
