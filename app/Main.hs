@@ -33,8 +33,8 @@ main' = do
   readevalprint args (S True "" [])
 
 iname, iprompt :: String
-iname = "cálculo lambda simplemente tipado"
-iprompt = "ST> "
+iname = "grafos dirigidos y no dirigidos"
+iprompt = "> "
 
 ioExceptionCatcher :: IOException -> IO (Maybe a)
 ioExceptionCatcher _ = return Nothing
@@ -211,7 +211,7 @@ handleStmt state stmt = lift $ do
   
 
 prelude :: String
-prelude = "Ejemplos/Prelude.lam"
+prelude = "Ejemplos/Prelude.gr"
 
 it :: String
 it = "it"

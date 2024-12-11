@@ -9,20 +9,33 @@ module Common where
              | SGraph SGraph
              | SUnion STerm STerm
              | SIntersect STerm STerm
+             | SK STerm
+             | SEuler STerm
+             | SHamilton STerm 
+             | SDiff STerm STerm
     deriving (Show)
 
   data Term = V Var
-            | Graph Graph Propietis
+            | Graph Graph Properties
             | Union Term Term 
             | Intersect Term Term
+            | K Term
+            | Euler Term
+            | Hamilton Term
+            | Diff Term Term
     deriving (Show)
 
-  data Value = VGraph Graph Propietis
+  data Value = VGraph Graph Properties
+            |  VInt Int
+            |  VEdges [Edge]
     deriving (Show)
 
-  data Propietis = P {
+  data Properties = P {
                       name :: String,
-                      directed :: Bool
+                      directed :: Bool,
+                      conex :: Bool,
+                      weighted :: Bool,
+                      path :: Path
                   }
     deriving (Show)
 
@@ -31,11 +44,7 @@ module Common where
               | EmptyGraph
     deriving (Show)
 
-  --instance Functor Stmt where
-  --  fmap f (DefNode s i) = DefNode s (f i)
-  --  fmap f (DefGraph i)  = DefGraph (f i)
 
-  -- Tipos de los nombres
   data Var
      =  Global String
      |  Free String
@@ -52,6 +61,7 @@ module Common where
                 deriving (Show)
 
   type Edge = (Node, Node)
+  type Path = [Edge]
   type Node = String
   type Name = String
 

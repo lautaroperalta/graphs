@@ -1,0 +1,2 @@
+def A = {A->B;B->C;C->A;}
+def B = {A->D;D->E;E->F A;F->A;}

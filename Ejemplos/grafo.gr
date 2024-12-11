@@ -1,0 +1,3 @@
+def X = {A->B;B->F C E;E->C;F->C;C->D;}
+def Y = {A->B;B->D;}
+X \/ Y

@@ -27,42 +27,52 @@ import Data.Char
     ','     { TComa }
     '->'    { TArrow }
     '--'    { TLine }
+    '-'     { TDiff }
     VAR     { TVar $$ }
     INT     { TInt $$ }
     DEF     { TDef }
     NAME    { TName $$ }
-    '\\/'    { TUnion }
+    '\\/'   { TUnion }
     '/\\'   { TIntersect }
--- x = {a,b,c,d}
--- y = {(a,b),(b,c),(c,d)}
--- Graph = (x,y)
--- Graph [Node] [Edge]
+    'K'     { TConex }
+    EULER   { TEuler }
+    HAMILTON { THamilton }
+
 
 %right VAR INT NAME
 %left '='  
-%right '\\' '.' DEF  '->' '--' '++' '{' '}' ';' ',' ':' '"' '(' ')' TEOF
+%right '\\' '.' DEF  '->' '/\\' '\\/' '{' '}' ';' ',' ':' '"' '(' ')' TEOF
 %% 
 
 Def     : DEF NAME '=' Exp      { Def $2 $4 }
         | Exp                     { Eval $1 }  
 
-Defgraph :  NAME '->' Edges ';' DirectedGr    { SGraph (DirectedGraph (( $1, $3 )  : $5)) }
-         |  NAME '--' Edges ';' UndirectedGr  { SGraph (UndirectedGraph (( $1, $3 )  : $5)) }
+
+Defgraph :  Atom '->' Edges ';' DirectedGr    { SGraph (DirectedGraph (( $1, $3 )  : $5)) }
+         |  Atom '--' Edges ';' UndirectedGr  { SGraph (UndirectedGraph (( $1, $3 )  : $5)) }
          |                                    { SGraph (EmptyGraph) } 
 
-Exp     : NAME                                { SVar $1}
+Exp     : NAME                                { SVar $1 }
         | '{' Defgraph '}'                    { $2 }
-        | Exp '\\/' Exp                        { SUnion $1 $3 }
+        | Exp '\\/' Exp                       { SUnion $1 $3 }
         | Exp '/\\' Exp                       { SIntersect $1 $3 }
+        | Exp '-' Exp                         { SDiff $1 $3 }
         | '(' Exp ')'                         { $2 }
+        | 'K' Exp                             { SK $2 }
+        | EULER Exp                           { SEuler $2 }
+        | HAMILTON Exp                        { SHamilton $2 }
 
-DirectedGr : NAME '->' Edges ';' DirectedGr   {( $1, $3 )  : $5 }
+Atom   : NAME                                { $1  }
+       | INT                                 { $1 }
+       |                                     { "" }
+
+DirectedGr : Atom '->' Edges ';' DirectedGr   {( $1, $3 )  : $5 }
            |                                  { [] }
 
-UndirectedGr : NAME '--' Edges ';' UndirectedGr   {( $1, $3 )  : $5 }
+UndirectedGr : Atom '--' Edges ';' UndirectedGr   {( $1, $3 )  : $5 }
              |                                    { [] }
 
-Edges : NAME Edges  { $1 : $2 }
+Edges : Atom Edges  { $1 : $2 }
       |             { [] }
  
 
@@ -115,10 +125,14 @@ data Token = TVar String
                | TUnion
                | TIntersect
                | TArrow
+               | TConex
+               | TEuler
+               | THamilton
                | TLine
                | TEquals
                | TEOF
-               | TInt Int
+               | TDiff
+               | TInt String
                deriving Show
 
 ----------------------------------
@@ -141,6 +155,7 @@ lexer cont s = case s of
                     ('=':cs) -> cont TEquals cs
                     ('-':('>':cs)) -> cont TArrow cs
                     ('-':('-':cs)) -> cont TLine cs
+                    ('-':cs) -> cont TDiff cs
                     ('\\':('/':cs)) -> cont TUnion cs
                     ('/':('\\':cs)) -> cont TIntersect cs
                     (';':cs) -> cont TSemi cs
@@ -150,6 +165,9 @@ lexer cont s = case s of
                      "Línea "++(show line)++": No se puede reconocer "++(show $ take 10 unknown)++ "..."
                     where lexVar cs = case span isAlpha cs of
                               ("def",rest)  -> cont TDef rest
+                              ("K",rest)  -> cont TConex rest
+                              ("Euler",rest)  -> cont TEuler rest
+                              ("Hamilton",rest)  -> cont THamilton rest
                               (var,'=':rest) -> cont (TVar var) rest
                               (name, rest) -> cont (TName name) rest
                           consumirBK anidado cl cont s = case s of
@@ -161,7 +179,7 @@ lexer cont s = case s of
                               ('\n':cs) -> consumirBK anidado (cl+1) cont cs
                               (_:cs) -> consumirBK anidado cl cont cs
                           lexInt cs = case span isDigit cs of
-                              (int,rest) -> cont (TInt (read int)) rest     
+                              (int,rest) -> cont (TInt int) rest     
                                            
 stmts_parse s = parseStmts s 1
 stmt_parse s = parseStmt s 1
