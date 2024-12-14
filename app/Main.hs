@@ -4,6 +4,7 @@ import           Control.Exception              ( catch
                                                 , IOException
                                                 )
 import           Control.Monad.Except
+import           Control.Monad.IO.Class (liftIO)
 import           Data.Char
 import           Data.List
 import           Data.Maybe
@@ -18,7 +19,8 @@ import           Text.PrettyPrint.HughesPJ      ( render
 
 import           Parse
 import           Common
-import           Elab                         ( elaborate, eval )
+import           Elab                         ( elaborate )
+import           Eval                         (eval, Error(..))
 import           PrettyPrinter
 ---------------------
 --- Interpreter
@@ -196,18 +198,23 @@ parseIO f p x = lift $ case p x of
   Ok r -> return (Just r)
 
 handleStmt :: State -> Stmt -> InputT IO State
-handleStmt state stmt = lift $ do 
-  case stmt of
+handleStmt state stmt = do
+  result <- liftIO $ runExceptT $ case stmt of
     Def n ns -> do
       let g = elaborate n ns
-          vg = eval (ve state) g
+      vg <- eval (ve state) g  -- eval ahora está en ExceptT
       return (state { ve = (n, vg) : ve state })
     Eval ns -> do
       let g = elaborate "Graph" ns
-          vg = eval (ve state) g
-      putStrLn (show vg)
-      loadGraph vg
+      vg <- eval (ve state) g  -- eval ahora está en ExceptT
+      liftIO $ putStrLn (show vg)  -- Usar liftIO para operaciones IO
+      liftIO $ loadGraph vg
       return state
+  case result of
+    Left err -> do
+      outputStrLn $ "Error: " ++ show err
+      return state
+    Right newState -> return newState
   
 
 prelude :: String
