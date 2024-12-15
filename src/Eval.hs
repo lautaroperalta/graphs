@@ -13,7 +13,9 @@ import           Debug.Trace (trace)
 import           Control.Monad
 import           Control.Monad.Except
 import           UndirectedG
+import           DirectedG
 
+--Errores
 data Error = ParseErr String
 instance Show Error where
   show (ParseErr e) = show e 
@@ -29,7 +31,21 @@ k (G ns es) = let start = Set.elemAt 0 ns
                 True -> k (G (Set.difference ns visited) es) + 1
                 False -> 1
 
+unionGraph :: Graph -> Graph -> Graph
+unionGraph (G ns1 es1) (G ns2 es2) = G (Set.union ns1 ns2) (Set.union es1 es2)
 
+intersectionGraph :: Graph -> Graph -> Graph
+intersectionGraph (G ns1 es1) (G ns2 es2) = G (Set.intersection ns1 ns2) (Set.intersection es1 es2)
+
+differenceGraph :: Graph -> Graph -> Graph
+differenceGraph (G ns1 es1) (G ns2 es2) = let diff = Set.difference ns1 ns2
+                                              es' = Set.filter (\(x,y) -> Set.member x diff && Set.member y diff) es1
+                                          in  G diff es'
+
+dfs :: Graph -> Node -> Set.Set Node -> Set.Set Node
+dfs (G ns es) n visited = let visited' = Set.insert n visited
+                              ns' = Set.difference (Set.map (\(x,y) -> if x == n then y else x) (adyacentesND (G ns es) n)) visited'
+                          in Set.foldl (\acc x -> dfs (G ns es) x acc) visited' ns'
 
 isConex :: Graph -> Bool
 isConex (G ns es) = case Set.null ns of
@@ -37,6 +53,16 @@ isConex (G ns es) = case Set.null ns of
   False -> let start = Set.elemAt 0 ns
                visited = dfs (G ns es) start Set.empty
            in Set.size visited == Set.size ns
+
+--Operaciones entre propiedades --
+
+unionProperties :: Properties -> Properties -> Properties
+unionProperties p1 p2 = P {name = name p1 ++ " \\/ " ++ name p2, 
+                           directed = directed p1 || directed p2, 
+                           conex = conex p1 && conex p2, 
+                           weighted = weighted p1 || weighted p2, 
+                           path = path p1 ++ path p2}
+
 
 --Evaluador de grafos
 eval :: (MonadIO m, MonadError Error m) => VarEnv Value -> Term -> m Value
@@ -63,13 +89,13 @@ eval ve (K t) = do e <- eval ve t
 eval ve (Euler t) = do e <- eval ve t
                        case e of
                             VGraph g p -> let c = isConex g
-                                          in return $ if not (null g) && c then VGraph g p {path = euler g, conex = c} else VGraph g p {conex = c}
+                                          in return $ if not (null g) && c then VGraph g p {path = if directed p then eulerD g else eulerND g, conex = c} else VGraph g p {conex = c}
                             _ -> throwError (ParseErr "Error de tipo")
 
 eval ve (Hamilton t) = do e <- eval ve t
                           case e of
                             VGraph g p -> let c = isConex g
-                                          in return $ if not (null g) && c then VGraph g p {path = hamilton g,conex = c} else VGraph g p {conex = c}
+                                          in return $ if not (null g) && c then VGraph g p {path = if directed p then hamiltonD g else hamiltonND g,conex = c} else VGraph g p {conex = c}
                             _ -> throwError (ParseErr "Error de tipo")
 
 eval ve (Diff t1 t2) = do e1 <- eval ve t1

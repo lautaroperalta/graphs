@@ -14,24 +14,23 @@ import           Control.Monad
 import           Control.Monad.Except
 
  
+normalizePair :: (Name,Name) -> (Name,Name)
+normalizePair (x,y) = (min x y, max x y)
 
-
-toGraphD :: [(Name,[Name])] -> Graph
-toGraphD ns = let v = Set.union (Set.fromList (map fst ns)) (Set.fromList (concat (map snd ns)))
-                 e = Set.fromList $ concatMap (\(x,ys) -> map (\y -> (x,y)) ys) ns
-             in G v e
-
-toGraphUD :: [(Name,[Name])] -> Graph
-toGraphUD ns = let v = Set.union (Set.fromList (map fst ns)) (Set.fromList (concat (map snd ns)))
-                 e = Set.fromList $ concatMap (\(x,ys) -> map (\y -> Set.insert x (Set.singleton y)) ys) ns
-             in G v e
+toGraph :: [(Name,[Name])] -> Bool -> Graph
+toGraph ns True = let v = Set.union (Set.fromList (map fst ns)) (Set.fromList (concat (map snd ns)))
+                      e = Set.fromList $ concatMap (\(x,ys) -> map (\y -> (x,y)) ys) ns
+                  in G v e
+toGraph ns False = let v = Set.union (Set.fromList (map fst ns)) (Set.fromList (concat (map snd ns)))
+                       e = Set.fromList $ concatMap (\(x,ys) -> map (\y -> normalizePair (x,y)) ys) ns
+                   in G v e
 
 defaultProperties :: String -> Bool -> Properties
 defaultProperties n b = P {name = n, directed = b, conex = False, weighted = False, path = []}
 
 elaborate :: String -> STerm -> Term
-elaborate n (SGraph (DirectedGraph ns)) = Graph (toGraphUD ns) (defaultProperties n True)
-elaborate n (SGraph (UndirectedGraph ns)) = Graph (toGraphD ns) (defaultProperties n False)
+elaborate n (SGraph (DirectedGraph ns)) = Graph (toGraph ns True) (defaultProperties n True)
+elaborate n (SGraph (UndirectedGraph ns)) = Graph (toGraph ns False) (defaultProperties n False)
 elaborate n (SGraph EmptyGraph) = Graph (G Set.empty Set.empty) (defaultProperties n True)
 elaborate n (SUnion t1 t2) = Union (elaborate n t1) (elaborate n t2)
 elaborate n (SIntersect t1 t2) = Intersect (elaborate n t1) (elaborate n t2)

@@ -47,20 +47,14 @@ module Common where
      |  Free String
     deriving (Show, Eq)
   -- Grafo y sus definiciones
-  data GraphDir = GD { 
+  data Graph = G { 
                 nodes :: Set.Set Node, 
-                edges :: Set.Set EdgeD
+                edges :: Set.Set Edge
               }
                 deriving (Show)
   
-  data GraphUndir = GU {
-                nodesU :: Set.Set Node,
-                edgesU :: Set.Set EdgeUD
-              }
-                deriving (Show)
 
-  type EdgeD = (Node, Node)
-  type EdgeUD = Set.Set Node
+  type Edge = (Node, Node)
   type Path = [Edge]
   type Node = String
   type Name = String
