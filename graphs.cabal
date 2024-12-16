@@ -53,8 +53,6 @@ library
     , containers
     , exceptions
     , fgl
-    , gloss
-    , gloss-juicy
     , graphviz
     , haskeline >=0.8.0.0
     , mtl
@@ -89,8 +87,6 @@ executable graphs-exe
     , containers
     , exceptions
     , fgl
-    , gloss
-    , gloss-juicy
     , graphs
     , graphviz
     , haskeline >=0.8.0.0

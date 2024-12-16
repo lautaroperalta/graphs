@@ -39,7 +39,4 @@ elaborate n (SEuler t) = Euler (elaborate n t)
 elaborate n (SHamilton t) = Hamilton (elaborate n t)
 elaborate _ (SVar v) = V (Global v)
 elaborate n (SDiff t1 t2) = Diff (elaborate n t1) (elaborate n t2)
-
-
-
-
+elaborate n (SComplement t) = Complement (elaborate n t)

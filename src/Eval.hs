@@ -42,6 +42,7 @@ differenceGraph (G ns1 es1) (G ns2 es2) = let diff = Set.difference ns1 ns2
                                               es' = Set.filter (\(x,y) -> Set.member x diff && Set.member y diff) es1
                                           in  G diff es'
 
+
 dfs :: Graph -> Node -> Set.Set Node -> Set.Set Node
 dfs (G ns es) n visited = let visited' = Set.insert n visited
                               ns' = Set.difference (Set.map (\(x,y) -> if x == n then y else x) (adyacentesND (G ns es) n)) visited'
@@ -73,7 +74,9 @@ eval ve (Graph g p) = return $ VGraph g p {conex = isConex g}
 eval ve (Union t1 t2) = do e1 <- eval ve t1 
                            e2 <- eval ve t2
                            case (e1,e2) of
-                              (VGraph g1 p1, VGraph g2 p2) -> return $ VGraph (unionGraph g1 g2) (unionProperties p1 p2)
+                              (VGraph g1 p1, VGraph g2 p2) -> case (directed p1) == (directed p2) of 
+                                                                True -> return $ VGraph (unionGraph g1 g2) (unionProperties p1 p2)
+                                                                _    -> throwError (ParseErr "Union entre grafos dirigidos y no dirigidos")
                               _ -> throwError (ParseErr "Error de tipo")
 
 eval ve (Intersect t1 t2) = do e1 <- eval ve t1 
@@ -103,3 +106,9 @@ eval ve (Diff t1 t2) = do e1 <- eval ve t1
                           case (e1,e2) of
                             (VGraph g1 p1, VGraph g2 p2) -> return $ VGraph (differenceGraph g1 g2) p1 {name = name p1 ++ " - " ++ name p2}
                             _ -> throwError (ParseErr "Error de tipo")
+
+eval ve (Complement t) = do e <- eval ve t
+                            case e of
+                              VGraph g p -> return $ VGraph (complementGraphUD g) p {name = "-Complemento de " ++ name p}
+                              _ -> throwError (ParseErr "Error de tipo")
+                    

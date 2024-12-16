@@ -19,14 +19,15 @@ instance Labellable Edge where
     toLabelValue = toLabelValue . show
 
 -- | Parámetros para la generación del grafo
-myParams :: Properties -> GraphvizParams n Node Edge () String
+myParams :: Properties -> GraphvizParams Int Node Edge () String
 myParams p = nonClusteredParams { 
-    globalAttributes = [GraphAttrs [toLabel (name p)]] ++ if directed p then [] else [EdgeAttrs [ArrowHead (AType [(ArrMod FilledArrow RightSide, NoArrow)])]],  -- Los nodos se colocan de izquierda a derecha
-    fmtNode = \(_,l) -> [toLabel l],  -- Usar las etiquetas de los nodos
+    globalAttributes = [GraphAttrs [toLabel (name p), Overlap ScaleOverlaps, Mode IpSep], NodeAttrs [Shape Circle]] ++ if directed p then [] else [EdgeAttrs [ArrowHead (AType [(ArrMod FilledArrow RightSide, NoArrow)])]],  -- Los nodos se colocan de izquierda a derecha
+    fmtNode = \(n,l) -> [toLabel l],  -- Usar las etiquetas de los nodos
     fmtEdge = \(x,y,l) -> case elemIndex l (path p) of
                             Just i -> [toLabel (i+1),Color [toWC (X11Color Red)]]
                             Nothing -> []
     }
+    --, Pos $ PointPos (Point (fromIntegral n) (fromIntegral n) Nothing True)
 -- Pasamos el graph a estructura de grafo intermedia para poder plotearlo
 graphToGr :: Graph -> Gr Node Edge
 graphToGr (G ns es) = let ns' = zip [1..] $ Set.toList ns
@@ -40,4 +41,3 @@ loadGraph :: Value -> IO ()
 loadGraph (VGraph g p) = runGraphvizCanvas Neato (graphToDot params (graphToGr g)) Xlib
                                                 where params = myParams p
 loadGraph (VInt i) = putStrLn (show i)
-loadGraph (VEdges es) = putStrLn (show es)

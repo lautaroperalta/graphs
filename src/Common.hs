@@ -13,6 +13,7 @@ module Common where
              | SEuler STerm
              | SHamilton STerm 
              | SDiff STerm STerm
+             | SComplement STerm
     deriving (Show)
 
   data SGraph = DirectedGraph [(Name,[Name])]
@@ -28,11 +29,11 @@ module Common where
             | Euler Term
             | Hamilton Term
             | Diff Term Term
+            | Complement Term
     deriving (Show)
   -- Los valores son el grafo o un entero para mostrar cantidad de componentes conexas
   data Value = VGraph Graph Properties
             |  VInt Int
-            |  VEdges [Edge]
     deriving (Show)
 
 

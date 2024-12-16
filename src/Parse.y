@@ -37,6 +37,7 @@ import Data.Char
     'K'     { TConex }
     EULER   { TEuler }
     HAMILTON { THamilton }
+    '!'     { TComplement }
 
 
 %right VAR INT NAME
@@ -61,6 +62,7 @@ Exp     : NAME                                { SVar $1 }
         | 'K' Exp                             { SK $2 }
         | EULER Exp                           { SEuler $2 }
         | HAMILTON Exp                        { SHamilton $2 }
+        | '!' Exp                             { SComplement $2}
 
 Atom   : NAME                                { $1  }
        | INT                                 { $1 }
@@ -109,6 +111,9 @@ catchP m k = \s l -> case m s l of
 happyError :: P a
 happyError = \ s i -> Failed $ "Línea "++(show (i::LineNumber))++": Error de parseo\n"++(s)
 
+isAlphaNumSym :: Char -> Bool
+isAlphaNumSym c = isAlphaNum c || c == '_'
+
 data Token = TVar String
                | TDef
                | TDot
@@ -132,6 +137,7 @@ data Token = TVar String
                | TEquals
                | TEOF
                | TDiff
+               | TComplement
                | TInt String
                deriving Show
 
@@ -151,6 +157,7 @@ lexer cont s = case s of
                     ('(':cs) -> cont TOpen cs
                     (')':cs) -> cont TClose cs
                     ('"':cs) -> cont TQuote cs
+                    ('!' : cs) -> cont TComplement cs
                     (':':cs) -> cont TColon cs
                     ('=':cs) -> cont TEquals cs
                     ('-':('>':cs)) -> cont TArrow cs
@@ -163,12 +170,11 @@ lexer cont s = case s of
                     ('}':cs) -> cont TKClose cs
                     unknown -> \line -> Failed $ 
                      "Línea "++(show line)++": No se puede reconocer "++(show $ take 10 unknown)++ "..."
-                    where lexVar cs = case span isAlpha cs of
+                    where lexVar cs = case span isAlphaNumSym cs of
                               ("def",rest)  -> cont TDef rest
                               ("K",rest)  -> cont TConex rest
                               ("Euler",rest)  -> cont TEuler rest
                               ("Hamilton",rest)  -> cont THamilton rest
-                              (var,'=':rest) -> cont (TVar var) rest
                               (name, rest) -> cont (TName name) rest
                           consumirBK anidado cl cont s = case s of
                               ('/':('/':cs)) -> consumirBK anidado cl cont $ dropWhile ((/=) '\n') cs

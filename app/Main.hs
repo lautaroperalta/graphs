@@ -113,9 +113,9 @@ handleCommand state@(S inter lfile ve) cmd = case cmd of
   Quit   -> lift $ when (not inter) (putStrLn "!@#$^&*") >> return Nothing
   Noop   -> return (Just state)
   Help   -> lift $ putStr (helpTxt commands) >> return (Just state)
---  Browse -> lift $ do
---    putStr (unlines [ s | Global s <- reverse (nub (map fst ve)) ])
---    return (Just state)
+  Browse -> lift $ do
+    putStr (unlines [ s | s <- reverse (nub (map fst ve)) ])
+    return (Just state)
   Compile c -> do
     state' <- case c of
       CompileInteractive s -> compilePhrase state s
@@ -203,9 +203,12 @@ handleStmt state stmt = do
     Def n ns -> do
       let g = elaborate n ns
       vg <- eval (ve state) g  -- eval ahora está en ExceptT
+
       return (state { ve = (n, vg) : ve state })
     Eval ns -> do
       let g = elaborate "Graph" ns
+      liftIO $ putStrLn (show g)  -- Usar liftIO para operaciones IO
+
       vg <- eval (ve state) g  -- eval ahora está en ExceptT
       liftIO $ putStrLn (show vg)  -- Usar liftIO para operaciones IO
       liftIO $ loadGraph vg

@@ -9,6 +9,11 @@ import           Debug.Trace (trace)
 import           Control.Monad
 import           Control.Monad.Except
 
+complementGraphD :: Graph -> Graph
+complementGraphD (G ns es) = let allEdges = [(x,y) | x <- Set.toList ns, y <- Set.toList ns, x /= y]
+                                 complementEdges = Set.fromList allEdges `Set.difference` es
+                              in G ns complementEdges
+
 degreeDout :: Graph -> Node -> Int
 degreeDout (G ns es) n = Set.size (Set.filter (\(x,y) -> x == n) es) 
 

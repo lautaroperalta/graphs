@@ -32,8 +32,6 @@ dependencies:
 - QuickCheck
 - containers
 - graphviz
-- gloss
-- gloss-juicy
 
 default-extensions:
 - TupleSections
