@@ -1,5 +1,0 @@
-graph {
-    graph [label=test];
-    1 [label=A,shape=egg];
-    1 -- 1 [label=AA];
-}

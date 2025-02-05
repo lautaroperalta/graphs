@@ -1,0 +1,30 @@
+/home/lautaro/.stack/programs/x86_64-linux/ghc-tinfo6-8.8.3/lib/ghc-8.8.3/include/ghcversion.h:
+  hash: 40d1b759f485f1cd5a54141a6412691ac2b76930507289a16a6a7b89b045b4d2
+/home/lautaro/Documents/graphs/.stack-work/dist/x86_64-linux-tinfo6/Cabal-3.0.1.0/build/autogen/Paths_graphs.hs:
+  hash: 0d098617000f81ca283f582160d454b9d9181a177368f0031ae8a941f1bff46e
+/home/lautaro/Documents/graphs/.stack-work/dist/x86_64-linux-tinfo6/Cabal-3.0.1.0/build/autogen/cabal_macros.h:
+  hash: 2755d7326e4cff6cd94b5e036508a7d857632f7c7dacb5f1f58d6bf435349791
+/home/lautaro/Documents/graphs/CHANGELOG.md:
+  hash: 0ed1cdaf5de758daa71308665853b2936e0f0f07825edfb178efda711592437a
+/home/lautaro/Documents/graphs/README.md:
+  hash: 709812fef44e9e50cc339a64aff4c0103c8bd1a44eebaf5df3428ac5b2a924e4
+/home/lautaro/Documents/graphs/graphs.cabal:
+  hash: c57dd1a0e2a5c06a8acc087f361b787a07150b5c8670448c80c67fa5bb3218b4
+/home/lautaro/Documents/graphs/package.yaml:
+  hash: 791aee1d8488b65d4a65acea3ab78b6aa2c066b7ead6f9a20a3e9940ce7107e7
+/home/lautaro/Documents/graphs/src/Common.hs:
+  hash: 494221225ca95c621b16b9956f07286d6f65af6ab0048e6b2f5d057d8785a672
+/home/lautaro/Documents/graphs/src/DirectedG.hs:
+  hash: 815c62a0e0cd4c9222dc6412042d6ce80efc064bb159ef7b98f90137f24ae6a4
+/home/lautaro/Documents/graphs/src/Elab.hs:
+  hash: bfba7d967d3fb756912725047f83fac84d7b66b0788e3281f4a935b421cb277d
+/home/lautaro/Documents/graphs/src/Eval.hs:
+  hash: 61841a668be50c5cfaba6e117ad3ac90b10f90fc2b209a4d2aa2d36d399fff3e
+/home/lautaro/Documents/graphs/src/Parse.y:
+  hash: e4c612e7ea3415576da9da679c4da5c21fcd9881ab4a63791c384c38998054b2
+/home/lautaro/Documents/graphs/src/PrettyPrinter.hs:
+  hash: 3384a999e0b66c0a5830fb70a6d9c8667958bbe51a869a7d735134b65504e609
+/home/lautaro/Documents/graphs/src/UndirectedG.hs:
+  hash: 257175dd95361941dbb3cf69d5ca98f03cb3c85c59eb717abc7c81cd2805fb34
+/usr/include/stdc-predef.h:
+  hash: 8db4f65e62cade8ae4d9b77960ee6aee093255acc1b637e3fb37d79179733b15
