@@ -26,7 +26,7 @@ toGraph ns False = let v = Set.union (Set.fromList (map fst ns)) (Set.fromList (
                    in G v e
 
 defaultProperties :: String -> Bool -> Properties
-defaultProperties n b = P {name = n, directed = b, conex = False, weighted = False, path = []}
+defaultProperties n b = P {name = n, directed = b, conex = False, path = []}
 
 elaborate :: String -> STerm -> Term
 elaborate n (SGraph (DirectedGraph ns)) = Graph (toGraph ns True) (defaultProperties n True)

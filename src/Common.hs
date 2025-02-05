@@ -64,7 +64,6 @@ module Common where
                       name :: String,
                       directed :: Bool,
                       conex :: Bool,
-                      weighted :: Bool,
                       path :: Path
                   }
     deriving (Show)

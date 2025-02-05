@@ -61,9 +61,19 @@ unionProperties :: Properties -> Properties -> Properties
 unionProperties p1 p2 = P {name = name p1 ++ " \\/ " ++ name p2, 
                            directed = directed p1 || directed p2, 
                            conex = conex p1 && conex p2, 
-                           weighted = weighted p1 || weighted p2, 
                            path = path p1 ++ path p2}
 
+differenceProperties :: Properties -> Properties -> Properties
+differenceProperties p1 p2 = P {name = name p1 ++ " - " ++ name p2, 
+                                directed = directed p1, 
+                                conex = conex p1, 
+                                path = path p1}
+
+intersectionProperties :: Properties -> Properties -> Properties
+intersectionProperties p1 p2 = P {name = name p1 ++ " /\\ " ++ name p2, 
+                                  directed = directed p1 && directed p2, 
+                                  conex = conex p1 && conex p2, 
+                                  path = Set.toList $ Set.intersection (Set.fromList (path p1)) (Set.fromList (path p2))}
 
 --Evaluador de grafos
 eval :: (MonadIO m, MonadError Error m) => VarEnv Value -> Term -> m Value
@@ -82,7 +92,9 @@ eval ve (Union t1 t2) = do e1 <- eval ve t1
 eval ve (Intersect t1 t2) = do e1 <- eval ve t1 
                                e2 <- eval ve t2
                                case (e1,e2) of
-                                  (VGraph g1 p1, VGraph g2 p2) -> return $ VGraph (intersectionGraph g1 g2) p1 {name = name p1 ++ " /\\ " ++ name p2}
+                                  (VGraph g1 p1, VGraph g2 p2) -> case (directed p1) == (directed p2) of 
+                                                                True -> return $ VGraph (intersectionGraph g1 g2) (intersectionProperties p1 p2)
+                                                                _    -> throwError (ParseErr "Interseccion entre grafos dirigidos y no dirigidos")
                                   _ -> throwError (ParseErr "Error de tipo")
 eval ve (K t) = do e <- eval ve t
                    case e of
@@ -104,11 +116,13 @@ eval ve (Hamilton t) = do e <- eval ve t
 eval ve (Diff t1 t2) = do e1 <- eval ve t1
                           e2 <- eval ve t2
                           case (e1,e2) of
-                            (VGraph g1 p1, VGraph g2 p2) -> return $ VGraph (differenceGraph g1 g2) p1 {name = name p1 ++ " - " ++ name p2}
+                            (VGraph g1 p1, VGraph g2 p2) -> case (directed p1) == (directed p2) of 
+                                                                True -> return $ VGraph (differenceGraph g1 g2) (differenceProperties p1 p2)
+                                                                _    -> throwError (ParseErr "Diferencia entre grafos dirigidos y no dirigidos")
                             _ -> throwError (ParseErr "Error de tipo")
 
 eval ve (Complement t) = do e <- eval ve t
                             case e of
-                              VGraph g p -> return $ VGraph (complementGraphUD g) p {name = "-Complemento de " ++ name p}
+                              VGraph g p -> return $ VGraph (complementGraphUD g) p {name = "Complemento de " ++ name p}
                               _ -> throwError (ParseErr "Error de tipo")
                     
