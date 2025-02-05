@@ -202,15 +202,12 @@ handleStmt state stmt = do
   result <- liftIO $ runExceptT $ case stmt of
     Def n ns -> do
       let g = elaborate n ns
-      vg <- eval (ve state) g  -- eval ahora está en ExceptT
-
+      vg <- eval (ve state) g  
       return (state { ve = (n, vg) : ve state })
     Eval ns -> do
       let g = elaborate "Graph" ns
-      liftIO $ putStrLn (show g)  -- Usar liftIO para operaciones IO
-
-      vg <- eval (ve state) g  -- eval ahora está en ExceptT
-      liftIO $ putStrLn (show vg)  -- Usar liftIO para operaciones IO
+      vg <- eval (ve state) g  
+      --liftIO $ putStrLn (show vg) // print para debugging
       liftIO $ loadGraph vg
       return state
   case result of

@@ -2,15 +2,17 @@ module PrettyPrinter
         ( loadGraph ) where
 
 
-import Data.Text.Lazy hiding (empty,all,map,zip,reverse)
+--import Data.Text.Lazy hiding (empty,all,map,zip,reverse)
 import Data.GraphViz hiding (empty,Path)
 import Data.Graph.Inductive.Graph hiding (Graph,Edge,Node,Path)
 import Data.Graph.Inductive.PatriciaTree
+import Control.Monad (void)
 import Data.GraphViz.Printing hiding (empty)
 import Data.GraphViz.Attributes.Complete 
 import Data.GraphViz.Commands
 import Data.Maybe
 import Data.List
+import Data.Char (isAlphaNum)
 import qualified Data.Set as Set
 import Common 
 
@@ -27,7 +29,6 @@ myParams p = nonClusteredParams {
                             Just i -> [toLabel (i+1),Color [toWC (X11Color Red)]]
                             Nothing -> []
     }
-    --, Pos $ PointPos (Point (fromIntegral n) (fromIntegral n) Nothing True)
 -- Pasamos el graph a estructura de grafo intermedia para poder plotearlo
 graphToGr :: Graph -> Gr Node Edge
 graphToGr (G ns es) = let ns' = zip [1..] $ Set.toList ns
@@ -38,6 +39,8 @@ graphToGr (G ns es) = let ns' = zip [1..] $ Set.toList ns
                       
 
 loadGraph :: Value -> IO ()
-loadGraph (VGraph g p) = runGraphvizCanvas Neato (graphToDot params (graphToGr g)) Xlib
+loadGraph (VGraph g p) = do runGraphvizCanvas Neato graph Xlib
+                            void $ runGraphvizCommand Neato graph Png ("images/" ++ (filter isAlphaNum (name p)) ++ ".png") 
                                                 where params = myParams p
+                                                      graph = graphToDot params (graphToGr g)
 loadGraph (VInt i) = putStrLn (show i)
