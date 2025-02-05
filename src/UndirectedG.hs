@@ -5,7 +5,6 @@ import           Data.Maybe
 import qualified Data.Set as Set 
 import           Prelude                 hiding ( (>>=), null )
 import           Common
-import           Debug.Trace (trace)
 import           Control.Monad
 import           Control.Monad.Except
 
@@ -13,7 +12,7 @@ import           Control.Monad.Except
 complementGraphUD :: Graph -> Graph
 complementGraphUD (G ns es) = let allEdges = [(min x y,max x y) | x <- Set.toList ns, y <- Set.toList ns, x /= y]
                                   complementEdges = Set.fromList allEdges `Set.difference` es
-                              in trace (show (Set.fromList allEdges)) $ G ns complementEdges
+                              in G ns complementEdges
 
 degreeND:: Graph -> Node -> Int
 degreeND (G ns es) n = Set.size (Set.filter (\(x,y) -> x == n || y == n) es) 

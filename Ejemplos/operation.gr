@@ -1,0 +1,12 @@
+def X = {A->B;B->C D;C->E;D->A;E->B;}
+def Y = {A->B;B->F;F->G O;H->G;G->A B;O->I;I->H;}
+def union = X \/ Y
+def intersect = X /\ Y
+def diff = union - intersect
+def complement = !Y
+Euler X
+Hamilton Y
+union
+intersect
+diff
+complement

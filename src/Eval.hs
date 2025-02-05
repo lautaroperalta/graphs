@@ -104,13 +104,13 @@ eval ve (K t) = do e <- eval ve t
 eval ve (Euler t) = do e <- eval ve t
                        case e of
                             VGraph g p -> let c = isConex g
-                                          in return $ if not (null g) && c then VGraph g p {path = if directed p then eulerD g else eulerND g, conex = c} else VGraph g p {conex = c}
+                                          in return $ if not (null g) && c then VGraph g p{name = "Euler " ++ (name p), path = if directed p then eulerD g else eulerND g, conex = c} else VGraph g p {conex = c}
                             _ -> throwError (ParseErr "Error de tipo")
 
 eval ve (Hamilton t) = do e <- eval ve t
                           case e of
                             VGraph g p -> let c = isConex g
-                                          in return $ if not (null g) && c then VGraph g p {path = if directed p then hamiltonD g else hamiltonND g,conex = c} else VGraph g p {conex = c}
+                                          in return $ if not (null g) && c then VGraph g p {name = "Hamilton " ++ (name p), path = if directed p then hamiltonD g else hamiltonND g,conex = c} else VGraph g p {conex = c}
                             _ -> throwError (ParseErr "Error de tipo")
 
 eval ve (Diff t1 t2) = do e1 <- eval ve t1
