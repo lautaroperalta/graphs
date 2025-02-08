@@ -82,13 +82,13 @@ data Command = Compile CompileForm
               | Noop
               | Operations
 
-data Operation = Union
-                | Intersection
-                | Difference
-                | Complement
-                | K
-                | Euler
-                | Hamilton
+data Operation = OpUnion
+                | OpIntersection
+                | OpDifference
+                | OpComplement
+                | OpK
+                | OpEuler
+                | OpHamilton
 
 data CompileForm = CompileInteractive  String
                   | CompileFile         String
@@ -122,6 +122,7 @@ handleCommand state@(S inter lfile ve) cmd = case cmd of
   Quit   -> lift $ when (not inter) (putStrLn "!@#$^&*") >> return Nothing
   Noop   -> return (Just state)
   Help   -> lift $ putStr (helpTxt commands) >> return (Just state)
+  Operations -> lift $ putStr (operationsTxt operations) >> return (Just state)
   Browse -> lift $ do
     putStr (unlines [ s | s <- reverse (nub (map fst ve)) ])
     return (Just state)
@@ -141,6 +142,7 @@ data InteractiveCommand = Cmd [String] String (String -> Command) String
 commands :: [InteractiveCommand]
 commands =
   [ Cmd [":browse"] "" (const Browse) "Ver los nombres en scope"
+  , Cmd [":operations"] ""       (const Operations) "Mostrar las operaciones definidas"
   , Cmd [":load"]
         "<file>"
         (Compile . CompileFile)
@@ -150,13 +152,21 @@ commands =
         (const Recompile)
         "Volver a cargar el último archivo"
   , Cmd [":quit"]       ""       (const Quit) "Salir del intérprete"
-  , Cmd [":operations"] ""       (const Operations) "Mostrar las operaciones definidas"
   , Cmd [":help", ":?"] ""       (const Help) "Mostrar esta lista de comandos"
   ]
 
-data OperationsText = Opr  
+data OperationsText = Opr String (String->Operation) String 
 
-operations :: [OperationText]
+operations :: [OperationsText]
+operations =
+  [ Opr "A \\/ B" (const OpUnion) "Unión entre grafos"
+  , Opr "A /\\ B" (const OpIntersection) "Intersección entre grafos"
+  , Opr "A - B" (const OpDifference) "Diferencia entre grafos"
+  , Opr "!A" (const OpComplement) "Complemento de un grafo"
+  , Opr "K A" (const OpK) "Cantidad de componentes conexas de un grafo"
+  , Opr "Euler A" (const OpEuler) "Encontrar caminos/circuitos eulerianos de un grafo"
+  , Opr "Hamilton A" (const OpHamilton) "Encontrar ciclos hamiltonianos de un grafo"
+  ]
 
 helpTxt :: [InteractiveCommand] -> String
 helpTxt cs =
@@ -178,7 +188,16 @@ helpTxt cs =
            cs
          )
 
-operationsTxt :: [Operation] -> String
+operationsTxt :: [OperationsText] -> String
+operationsTxt cs =
+  "Operaciones binarias y unarias entre grafos:\n"
+    ++ unlines
+         (map
+           (\(Opr e _ d) ->
+             e ++ replicate ((24 - length e) `max` 2) ' ' ++ d
+           )
+           cs
+         )
 
 compileFiles :: [String] -> State -> InputT IO State
 compileFiles xs s =
