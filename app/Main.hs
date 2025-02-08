@@ -80,6 +80,15 @@ data Command = Compile CompileForm
               | Quit
               | Help
               | Noop
+              | Operations
+
+data Operation = Union
+                | Intersection
+                | Difference
+                | Complement
+                | K
+                | Euler
+                | Hamilton
 
 data CompileForm = CompileInteractive  String
                   | CompileFile         String
@@ -128,6 +137,7 @@ handleCommand state@(S inter lfile ve) cmd = case cmd of
 
 data InteractiveCommand = Cmd [String] String (String -> Command) String
 
+
 commands :: [InteractiveCommand]
 commands =
   [ Cmd [":browse"] "" (const Browse) "Ver los nombres en scope"
@@ -140,8 +150,13 @@ commands =
         (const Recompile)
         "Volver a cargar el último archivo"
   , Cmd [":quit"]       ""       (const Quit) "Salir del intérprete"
+  , Cmd [":operations"] ""       (const Operations) "Mostrar las operaciones definidas"
   , Cmd [":help", ":?"] ""       (const Help) "Mostrar esta lista de comandos"
   ]
+
+data OperationsText = Opr  
+
+operations :: [OperationText]
 
 helpTxt :: [InteractiveCommand] -> String
 helpTxt cs =
@@ -162,6 +177,8 @@ helpTxt cs =
            )
            cs
          )
+
+operationsTxt :: [Operation] -> String
 
 compileFiles :: [String] -> State -> InputT IO State
 compileFiles xs s =
