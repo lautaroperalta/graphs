@@ -50,7 +50,7 @@ Se define todas las aristas de A1 y luego se finaliza con un *;* para pasar a la
 { A1 -- A2 A3 .. ; B1 -- B2 B3 .. ; .. ;} <br>
 <br>
 
-## Información adicional
+### Información adicional
 
 Es posible definir el grafo vacío simplemente con {}, en los demás casos siempre debe finalizarse la definición de las aristas de un nodo con un ; <br>
 En ambos casos (dirigidos y no dirigidos) para definir un nodo aislado se debe agregar "--" o "->" sin ningún nodo a la derecha, por ejemplo <br>
