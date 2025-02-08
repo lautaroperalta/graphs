@@ -60,7 +60,7 @@ def NOMBRE_VAR = { A1 -> A2 A3 .. ; B1 -> B2 B3 .. ; .. ;} <br>
 Un ejemplo de un grafo puede ser: <br>
 <br>
 def Grafo_A = {A ->B C D;B -> C;E -> ;} <br>
-Dando como resultado al evaluar Grafo_A <br>
+![Resultado al evaluar Grafo_A](images/GrafoA.png) <br>
 
 ## Ploting y visualización del grafo ##
 Para mostrar los grafos se utiliza la librería GraphViz el cual transforma nuestra representación al formato DOT y luego
@@ -154,7 +154,7 @@ es en la que está definida GraphViz para ser transformado a DOT.
 #### Libreria *Data.Set* ####
 La representación del grafo primero fue con listas, pero al decidir llevarlo a un enfoque más matemático (es decir, trabajar con conjuntos) se optó la opción
 de representar todo con conjuntos, lo que mejoró el performance y optimizó las funciones ya que el costo de de inserción, eliminación, union, intersección y demás
-es menor debido a que está implementado con un Árbol Binario Balanceado Red-Black Tree. Para más información [https://hackage.haskell.org/package/containers-0.7/docs/Data-Set.html]
+es menor debido a que está implementado con un Árbol Binario Balanceado Red-Black Tree. [Para más información](https://hackage.haskell.org/package/containers-0.7/docs/Data-Set.html)
 
 #### Algoritmos de Hamilton ####
 Como ya se dijo anteriormente, este es un problema NP-Completo y no existe un algoritmo eficiente conocido que no incluya heuristicas complejas
